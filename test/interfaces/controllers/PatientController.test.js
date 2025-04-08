@@ -26,4 +26,56 @@ describe("PatientController", () => {
     patientService = sandbox.createStubInstance(PatientService);
     patientController = new PatientController(patientService);
   });
+
+  describe("createPatient", () => {
+    it("should add a new patient via service", async () => {
+      const req = { body: mockPatientData };
+      const res = {
+        status: sandbox.stub().returnsThis(),
+        json: sandbox.stub(),
+      };
+
+      patientService.addPatient.resolves(mockPatientData);
+
+      await patientController.createPatient(req, res);
+
+      expect(patientService.addPatient.calledWith(mockPatientData)).to.be.true;
+      expect(res.status.calledWith(201)).to.be.true;
+      expect(res.json.calledWith(mockPatientData)).to.be.true;
+    });
+  });
+
+  describe("getPatientById", () => {
+    it("should return a patient when found", async () => {
+      const req = { params: { id: "1" } };
+      const res = {
+        status: sandbox.stub().returnsThis(),
+        json: sandbox.stub(),
+      };
+      const mockPatient = new Patient(mockPatientData);
+      mockPatient._setId(1);
+
+      patientService.findPatientById.resolves(mockPatient);
+
+      await patientController.getPatientById(req, res);
+
+      expect(res.status.calledWith(200)).to.be.true;
+      expect(res.json.calledWith(mockPatient)).to.be.true;
+    });
+
+    it("should return 404 when patient is not found", async () => {
+      const req = { params: { id: "999" } };
+      const res = {
+        status: sandbox.stub().returnsThis(),
+        json: sandbox.stub(),
+      };
+
+      patientService.findPatientById.resolves(null);
+
+      await patientController.getPatientById(req, res);
+
+      expect(res.status.calledWith(404)).to.be.true;
+      expect(res.json.calledWith({ error: "Patient not found" })).to.be.true;
+    });
+  });
 });
