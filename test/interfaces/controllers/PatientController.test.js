@@ -78,4 +78,71 @@ describe("PatientController", () => {
       expect(res.json.calledWith({ error: "Patient not found" })).to.be.true;
     });
   });
+
+  describe("deletePatient", () => {
+    it("should delete the patient and return it", async () => {
+      const req = { params: { id: "1" } };
+      const res = {
+        status: sandbox.stub().returnsThis(),
+        json: sandbox.stub(),
+      };
+      const mockPatient = new Patient(mockPatientData);
+      mockPatient._setId(1);
+
+      patientService.deletePatient.resolves(mockPatient);
+
+      await patientController.deletePatient(req, res);
+
+      expect(res.status.calledWith(200)).to.be.true;
+      expect(res.json.calledWith(mockPatient)).to.be.true;
+    });
+
+    it("should return 404 when patient is not found", async () => {
+      const req = { params: { id: "999" } };
+      const res = {
+        status: sandbox.stub().returnsThis(),
+        json: sandbox.stub(),
+      };
+
+      patientService.deletePatient.rejects(new Error("Patient not found"));
+
+      await patientController.deletePatient(req, res);
+
+      expect(res.status.calledWith(404)).to.be.true;
+      expect(res.json.calledWith({ error: "Patient not found" })).to.be.true;
+    });
+  });
+
+  describe("updatePatient", () => {
+    it("should update the patient and return it with 200 status", async () => {
+      const req = {
+        params: { id: "1" },
+        body: { name: "Jane Doe Updated" },
+      };
+
+      const res = {
+        status: sandbox.stub().returnsThis(),
+        json: sandbox.stub(),
+      };
+
+      const updatedPatient = new Patient({
+        ...mockPatientData,
+        name: "Jane Doe Updated",
+        id: 1,
+      });
+
+      patientService.updatePatient.resolves(updatedPatient);
+
+      await patientController.updatePatient(req, res);
+
+      expect(
+        patientService.updatePatient.calledWith("1", {
+          name: "Jane Doe Updated",
+        })
+      ).to.be.true;
+      expect(res.status.calledWith(200)).to.be.true;
+
+      expect(res.json.calledWith(updatedPatient)).to.be.true;
+    });
+  });
 });
