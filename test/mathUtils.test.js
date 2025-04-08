@@ -1,5 +1,6 @@
 import { expect } from "chai"
-import { sum, divide } from "../src/mathUtils.js"
+import { sum, divide, fetchAndSum } from "../src/mathUtils.js"
+import sinon from "sinon";
 
 describe('sum', () => {
   it('should add two numbers', () => {
@@ -19,4 +20,26 @@ describe('divide', () => {
   it('should throw error for division by zero', () => {
     expect(() => divide(6, 0)).to.throw('Division by zero');
   });
+})
+
+describe('fetchAndSum', () => {
+  let apiClientStub;
+
+  beforeEach(() => {
+    apiClientStub = {
+      get: sinon.stub(),
+    };
+  });
+
+  it('must sum if the API returns valid: true', async () => {
+    apiClientStub.get.resolves({ valid: true });
+
+    const result = await fetchAndSum(apiClientStub, 2, 3);
+
+    expect(result).to.equal(5);
+
+    expect(
+      apiClientStub.get.calledWith("/validate", { params: { x: 2, y: 3 } })
+    ).to.be.true;
+  })
 })
